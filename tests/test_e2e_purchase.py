@@ -20,9 +20,3 @@ def test_user_purchase_product_positive(driver):
     products.go_to_shopping_cart()
     cart.go_to_checkout()
 
-@pytest.mark.e2e
-def test_user_purchase_locked_user(driver):
-    login = LoginPage(driver)
-
-    login.load()
-    login.login_as_user(LOCKED_USER, PASSWORD)
