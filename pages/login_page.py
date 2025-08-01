@@ -20,5 +20,10 @@ class LoginPage(BasePage):
         self.type(self.INPUT_PASSWORD, password)
         self.click(self.BUTTON_LOGIN)
 
+    def assert_login_title(self):
+        assert "Swag Labs" in self.driver.title
+
     # def assert_inventory_url(self):
     #     assert "inventory" in self.driver.current_url, "No te encuentras en /inventory"
+
+    # def assert_error_message():

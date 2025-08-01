@@ -11,5 +11,9 @@ class ProductsPage(BasePage):
         add_button = (By.XPATH, f"//button[@id='add-to-cart-{product_name}']")
         self.click(add_button)
 
+    def remove_product_by_name(self, product_name: str):
+        remove_button = (By.XPATH, f"//button[@id='remove-{product_name}']")
+        self.click(remove_button)
+
     def go_to_shopping_cart(self):
         self.click(self.CART_LINK)

@@ -23,3 +23,6 @@ class BasePage:
 
     def element_is_visible(self, locator: tuple[By, str]) -> bool:
         return self.driver.find_element(*locator).is_displayed()
+
+    def reload(self):
+        self.driver.refresh()
