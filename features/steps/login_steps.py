@@ -26,7 +26,8 @@ def step_impl(context):
 def step_impl(context):
     WebDriverWait(context.driver, 10).until(EC.url_contains("/secure"))
     assert "Secure Area" in context.driver.title, "Validar titulo pagina segura"
-    context.driver.quit()
+    # El driver.quit se ejecutara dese $proyecto/environment.py
+    #context.driver.quit()
 
 @then('debería ver un mensaje de error')
 def step_impl(context):
