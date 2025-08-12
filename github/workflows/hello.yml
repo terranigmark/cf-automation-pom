@@ -1,0 +1,13 @@
+name: Creando un Workflow en GitHub Actions
+run-name: Corriendo mi primer workflow
+on: [push]
+jobs:
+  hola-mundo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Crear variable
+        run: echo "USERNAME=${{ github.actor }}" >> $GITHUB_ENV
+      - name: Ejecutar script en Python
+        run: python main.py
