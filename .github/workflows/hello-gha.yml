@@ -10,4 +10,4 @@ jobs:
       - name: Crear una variable
         run: echo "USERNAME=${{ github.actor }}" >> $GITHUB_ENV
       - name: Ejecutar script de Python
-        run: python hola_gha.py
+        run: python hola_gh.py
