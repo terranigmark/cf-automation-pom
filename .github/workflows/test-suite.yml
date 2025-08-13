@@ -1,0 +1,74 @@
+name: CI - cf-automation-pom  # Nombre visible del workflow en la pestaña Actions
+run-name: CI ${{ github.ref_name }}  # Nombre por ejecución; muestra la rama/ref que disparó el run
+
+on:                                 # Eventos que disparan el workflow
+  push:                             # Se ejecuta en cada push
+    branches: ["main", "gha-prueba"]  # Limita a estas ramas
+  pull_request:                     # También corre en PRs (cualquier rama origen → destino)
+  workflow_dispatch:                # Permite ejecutarlo manualmente desde la UI
+  schedule:                         # Programación automática (cron)
+    - cron: "0 9 * * *"             # Corre todos los días a las 09:00 UTC (ajústalo según necesites)
+
+permissions:                        # Permisos mínimos del GITHUB_TOKEN
+  contents: read                    # Solo lectura del repo (buena práctica de privilegio mínimo)
+
+concurrency:                        # Evita que haya ejecuciones duplicadas en paralelo
+  group: ci-${{ github.ref }}       # Agrupa por referencia (rama/PR)
+  cancel-in-progress: true          # Cancela el run anterior si llega uno nuevo del mismo grupo
+
+jobs:                               # Conjunto de trabajos que se ejecutan en el workflow
+  tests:                            # Identificador del job (puedes ponerle otro nombre)
+    runs-on: ubuntu-latest          # Tipo de runner: VM Ubuntu hospedada por GitHub
+
+    steps:                          # Pasos secuenciales que componen el job
+      - name: Checkout              # Paso 1: traer el código del repo al runner
+        uses: actions/checkout@v4   # Action oficial para hacer checkout
+
+      - name: Setup Python          # Paso 2: instalar y configurar Python en el runner
+        uses: actions/setup-python@v5  # Action oficial para Python
+        with:
+          python-version: "3.11"    # Versión de Python a usar
+
+      - name: Cache pip             # Paso 3: cachear dependencias para acelerar builds
+        uses: actions/cache@v4      # Action de cache
+        with:
+          path: ~/.cache/pip        # Carpeta de cache de pip
+          key: pip-${{ runner.os }}-${{ hashFiles('**/requirements*.txt') }}  # Clave ligada al SO y a cambios en requirements
+          restore-keys: |           # Claves de restauración si no se encuentra la exacta
+            pip-${{ runner.os }}-
+
+      - name: Install deps          # Paso 4: instalar dependencias del proyecto y utilidades de testing
+        run: |                      # Bloque de comandos de shell
+          python -m pip install --upgrade pip        # Actualiza pip
+          if [ -f requirements.txt ]; then           # Si existe requirements.txt...
+            pip install -r requirements.txt          # ...instala lo definido ahí
+          else                                       # Si NO existe requirements.txt...
+            pip install pytest selenium webdriver-manager pytest-html pytest-cov  # ...instala mínimos necesarios
+          fi
+
+      - name: Install Google Chrome # Paso 5: instala Google Chrome para pruebas UI con Selenium
+        uses: browser-actions/setup-chrome@v1  # Action que agrega Chrome al runner
+        with:
+          chrome-version: stable    # Instala la versión estable
+
+      - name: Run tests (pytest)    # Paso 6: ejecutar los tests y generar reportes
+        env:                        # Variables de entorno (opcionales) que tus tests podrían usar
+          BASE_URL: ${{ secrets.BASE_URL }}           # URL base del sitio bajo prueba (configurada como secret)
+          SAUCE_USER: ${{ secrets.SAUCE_USER }}       # Ejemplo de credencial (si aplica)
+          SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}  # Ejemplo de credencial (si aplica)
+        run: |                      # Bloque de comandos para correr pytest con reportes
+          mkdir -p reports                                  # Crea carpeta para reportes
+          xvfb-run -a pytest -q --maxfail=1 --disable-warnings \  # Ejecuta pytest usando X virtual (para UI no headless)
+            --html=reports/pytest-report.html --self-contained-html \  # Genera reporte HTML autocontenido
+            --junitxml=reports/junit.xml \                   # Genera reporte JUnit (para integraciones)
+            --cov=. --cov-report=term-missing --cov-report=xml:reports/coverage.xml  # Cobertura de código
+
+      - name: Upload artifacts (reports & screenshots)  # Paso 7: subir artefactos para descarga desde Actions
+        if: ${{ always() }}           # Subir incluso si hubo fallos (útil para depurar)
+        uses: actions/upload-artifact@v4  # Action para subir artefactos
+        with:
+          name: test-artifacts         # Nombre del paquete de artefactos
+          path: |                      # Qué carpetas/archivos subir
+            reports/**                 # Reportes (HTML, JUnit, cobertura)
+            **/screenshots/**          # Capturas si tu conftest.py las guarda aquí
+          if-no-files-found: ignore    # No fallar si alguna ruta no existe
