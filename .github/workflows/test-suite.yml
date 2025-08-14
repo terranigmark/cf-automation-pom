@@ -38,12 +38,12 @@ jobs:                               # Conjunto de trabajos que se ejecutan en el
             pip-${{ runner.os }}-
 
       - name: Install deps          # Paso 4: instalar dependencias del proyecto y utilidades de testing
-        run: |                      # Bloque de comandos de shell
-          python -m pip install --upgrade pip        # Actualiza pip
-          if [ -f requirements.txt ]; then           # Si existe requirements.txt...
-            pip install -r requirements.txt          # ...instala lo definido ahí
-          else                                       # Si NO existe requirements.txt...
-            pip install pytest selenium webdriver-manager pytest-html pytest-cov  # ...instala mínimos necesarios
+        run: |                      # Bloque de comandos de shell # Actualiza pip # Si existe requirements.txt... # ...instala lo definido ahí # Si NO existe requirements.txt... # ...instala mínimos necesarios
+          python -m pip install --upgrade pip        
+          if [ -f requirements.txt ]; then           
+            pip install -r requirements.txt          
+          else                                       
+            pip install pytest selenium webdriver-manager pytest-html pytest-cov  
           fi
 
       - name: Install Google Chrome # Paso 5: instala Google Chrome para pruebas UI con Selenium
@@ -56,19 +56,19 @@ jobs:                               # Conjunto de trabajos que se ejecutan en el
           BASE_URL: ${{ secrets.BASE_URL }}           # URL base del sitio bajo prueba (configurada como secret)
           SAUCE_USER: ${{ secrets.SAUCE_USER }}       # Ejemplo de credencial (si aplica)
           SAUCE_PASSWORD: ${{ secrets.SAUCE_PASSWORD }}  # Ejemplo de credencial (si aplica)
-        run: |                      # Bloque de comandos para correr pytest con reportes
-          mkdir -p reports                                  # Crea carpeta para reportes
-          xvfb-run -a pytest -q --maxfail=1 --disable-warnings \  # Ejecuta pytest usando X virtual (para UI no headless)
-            --html=reports/pytest-report.html --self-contained-html \  # Genera reporte HTML autocontenido
-            --junitxml=reports/junit.xml \                   # Genera reporte JUnit (para integraciones)
-            --cov=. --cov-report=term-missing --cov-report=xml:reports/coverage.xml  # Cobertura de código
+        run: |                      # Bloque de comandos para correr pytest con reportes - # Crea carpeta para reportes # Ejecuta pytest usando X virtual (para UI no headless) # Genera reporte HTML autocontenido # Genera reporte JUnit (para integraciones) # Cobertura de código
+          mkdir -p reports                                  
+          xvfb-run -a pytest -q --maxfail=1 --disable-warnings \  
+            --html=reports/pytest-report.html --self-contained-html \  
+            --junitxml=reports/junit.xml \                   
+            --cov=. --cov-report=term-missing --cov-report=xml:reports/coverage.xml  
 
       - name: Upload artifacts (reports & screenshots)  # Paso 7: subir artefactos para descarga desde Actions
         if: ${{ always() }}           # Subir incluso si hubo fallos (útil para depurar)
         uses: actions/upload-artifact@v4  # Action para subir artefactos
         with:
           name: test-artifacts         # Nombre del paquete de artefactos
-          path: |                      # Qué carpetas/archivos subir
-            reports/**                 # Reportes (HTML, JUnit, cobertura)
-            **/screenshots/**          # Capturas si tu conftest.py las guarda aquí
+          path: |                      # Qué carpetas/archivos subir # Reportes (HTML, JUnit, cobertura) # Capturas si tu conftest.py las guarda aquí
+            reports/**                 
+            **/screenshots/**
           if-no-files-found: ignore    # No fallar si alguna ruta no existe
