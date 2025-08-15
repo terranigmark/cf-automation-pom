@@ -1,0 +1,13 @@
+name: Pruebas unitarias en Python
+run-name: Pruebas unitarias
+on: [push]
+jobs:
+  python-unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Crear una variable
+        run: echo "USERNAME=${{ github.actor }}" >> $GITHUB_ENV
+      - name: Ejecutar script de Python
+        run: python hola_gha.py
